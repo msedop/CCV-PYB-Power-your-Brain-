@@ -1,5 +1,10 @@
 TypeError                                 Traceback (most recent call last)
-File c:\users\msedo\documents\power your brain\ccv_stef_ma.py:523
+TypeError: only 0-dimensional arrays can be converted to Python scalars
+
+The above exception was the direct cause of the following exception:
+
+ValueError                                Traceback (most recent call last)
+File c:\users\msedo\downloads\ccv_stef_ma_numpy_2_4_3.py:523
     520 # Fit ASR using this calibration segment
     521 # Lower cuttoff values (5-10) are more restrictive. Higher values (20-50) are more permissive
     522 asr = asrpy.ASR(sfreq=raw_calib.info['sfreq'], cutoff=20)
@@ -9,40 +14,33 @@ File c:\users\msedo\documents\power your brain\ccv_stef_ma.py:523
     528 # Decimation to reduce computational complexity of ASR and ICA
     529 raw_g.resample(256)
 
-File ~\AppData\Local\anaconda3\envs\neurohoop\Lib\site-packages\asrpy\asr.py:223, in ASR.fit(self, raw, picks, start, stop, return_clean_window)
-    220 X = raw.get_data(picks=picks, start=start, stop=stop)
-    222 # Find artifact-free windows first
---> 223 clean, sample_mask = clean_windows(
+File ~\AppData\Local\anaconda3\envs\neurohoop\Lib\site-packages\asrpy\asr.py:233, in ASR.fit(self, raw, picks, start, stop, return_clean_window)
+    223 clean, sample_mask = clean_windows(
     224     X,
     225     sfreq=self.sfreq,
-    226     win_len=self.win_len,
-    227     win_overlap=self.win_overlap,
-    228     max_bad_chans=self.max_bad_chans,
-    229     min_clean_fraction=self.min_clean_fraction,
+   (...)    229     min_clean_fraction=self.min_clean_fraction,
     230     max_dropout_fraction=self.max_dropout_fraction)
     232 # Perform calibration
-    233 self.M, self.T = asr_calibrate(
+--> 233 self.M, self.T = asr_calibrate(
     234     clean,
     235     sfreq=self.sfreq,
-   (...)    242     ab=(self.A, self.B),
+    236     cutoff=self.cutoff,
+    237     blocksize=self.blocksize,
+    238     win_len=self.win_len,
+    239     win_overlap=self.win_overlap,
+    240     max_dropout_fraction=self.max_dropout_fraction,
+    241     min_clean_fraction=self.min_clean_fraction,
+    242     ab=(self.A, self.B),
     243     method=self.method)
+    245 self._fitted = True
+    247 # return data if required
 
-File ~\AppData\Local\anaconda3\envs\neurohoop\Lib\site-packages\asrpy\asr.py:746, in clean_windows(X, sfreq, max_bad_chans, zthresholds, win_len, win_overlap, min_clean_fraction, max_dropout_fraction)
-    743 Y = np.array([np.sqrt(np.sum(x[o:o + N]) / N) for o in offsets])
-    745 # fit a distribution to the clean EEG part
---> 746 mu, sig, alpha, beta = fit_eeg_distribution(
-    747     Y, min_clean_fraction, max_dropout_fraction, truncate_quant,
-    748     step_sizes, shape_range)
-    749 # calculate z scores
-    750 wz[ichan] = (Y - mu) / sig
+File ~\AppData\Local\anaconda3\envs\neurohoop\Lib\site-packages\asrpy\asr.py:459, in asr_calibrate(X, sfreq, cutoff, blocksize, win_len, win_overlap, max_dropout_fraction, min_clean_fraction, ab, method)
+    457     for o in offsets:
+    458         Y.append(np.sqrt(np.sum(rms[o:o + N]) / N))
+--> 459     mu[ichan], sig[ichan], alpha, beta = fit_eeg_distribution(
+    460         Y, min_clean_fraction, max_dropout_fraction)
+    461 T = np.dot(np.diag(mu + cutoff * sig), V.T)
+    463 logging.debug('[ASR] Calibration done.')
 
-File ~\AppData\Local\anaconda3\envs\neurohoop\Lib\site-packages\asrpy\asr_utils.py:107, in fit_eeg_distribution(X, min_clean_fraction, max_dropout_fraction, fit_quantiles, step_sizes, shape_range)
-    103 cols = np.arange(lower_min,
-    104                  lower_min + max_dropout_fraction + step_sizes[0] * 1e-9,
-    105                  step_sizes[0])
-    106 cols = np.round(n * cols).astype(int)
---> 107 rows = np.arange(0, int(np.round(n * max_width)))
-    108 newX = np.zeros((len(rows), len(cols)))
-    109 for i, c in enumerate(range(len(rows))):
-
-TypeError: only 0-dimensional arrays can be converted to Python scalars
+ValueError: setting an array element with a sequence.
