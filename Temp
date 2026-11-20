@@ -1,18 +1,16 @@
-ValueError                                Traceback (most recent call last)
-File c:\users\msedo\downloads\ccv_stef_ma_numpy_2_4_3.py:590
-    588     if seg_end > max_time:
-    589         seg_end = max_time
---> 590 segment = raw_g.copy().crop(tmin=seg_onset, tmax=seg_end)
-    592 segment_channel_order = segment.ch_names.copy()
-    594 # Separate EEG and EOG channels by name
+TypeError                                 Traceback (most recent call last)
+File c:\users\msedo\downloads\ccv_stef_ma_numpy_2_4_3.py:3396
+   3394 else:
+   3395     print("Computing band powers and aggregating by region for events...")
+-> 3396     df, per_event_band_data = compute_and_group_events(events, bands)
+   3397     print("Summary table:")
+   3398     pd.set_option('display.max_rows', 200)
 
-File <decorator-gen-252>:12, in crop(self, tmin, tmax, include_tmax, reset_first_samp, verbose)
+File c:\users\msedo\downloads\ccv_stef_ma_numpy_2_4_3.py:3226, in compute_and_group_events(events, bands, group_func, psd_method)
+   3223 per_event_band_data = {}
+   3225 for i, ev in enumerate(events):
+-> 3226     raw = ev['raw']
+   3227     desc = ev.get('description', f'event_{i}')
+   3228     # compute per-channel band powers
 
-File ~\AppData\Local\anaconda3\envs\neurohoop\Lib\site-packages\mne\io\base.py:1647, in BaseRaw.crop(self, tmin, tmax, include_tmax, reset_first_samp, verbose)
-   1644     tmax = max_time
-   1646 if tmin > tmax:
--> 1647     raise ValueError(f"tmin ({tmin}) must be less than tmax ({tmax})")
-   1648 if tmin < 0.0:
-   1649     raise ValueError(f"tmin ({tmin}) must be >= 0")
-
-ValueError: tmin (12838) must be less than tmax (11439.99609375)
+TypeError: string indices must be integers, not 'str'
