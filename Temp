@@ -1,95 +1,36 @@
-TypeError                                 Traceback (most recent call last)
-File c:\users\msedo\downloads\ccv_stef_ma_numpy_2_4_3.py:226
-    224 event_mask = (param_df['offset_sec'] >= onset) & (param_df['offset_sec'] < onset + duration)
-    225 event_phys = param_df[event_mask]
---> 226 phys_means = event_phys[['HR(bpm)', 'SpO2(%)', 'PI(%)', 'RR(rpm)', 'PR(bpm)']].apply(pd.to_numeric, errors='coerce').mean()
-    228 exceed_count = {}
-    229 fall_count = {}
+# -------- Clean physiological measurements --------
 
-File ~\AppData\Local\anaconda3\envs\neurohoop\Lib\site-packages\pandas\util\_decorators.py:336, in deprecate_nonkeyword_arguments.<locals>.decorate.<locals>.wrapper(*args, **kwargs)
-    330 if len(args) > num_allow_args:
-    331     warnings.warn(
-    332         msg.format(arguments=_format_argument_list(allow_args)),
-    333         klass,
-    334         stacklevel=find_stack_level(),
-    335     )
---> 336 return func(*args, **kwargs)
+phys_cols = [
+    'HR(bpm)',
+    'SpO2(%)',
+    'PI(%)',
+    'RR(rpm)',
+    'PR(bpm)'
+]
 
-File ~\AppData\Local\anaconda3\envs\neurohoop\Lib\site-packages\pandas\core\frame.py:14461, in DataFrame.mean(self, axis, skipna, numeric_only, **kwargs)
-  14457         >>> df.mean(numeric_only=True)
-  14458         a   1.5
-  14459         dtype: float64
-  14460         """
-> 14461         result = super().mean(
-  14462             axis=axis, skipna=skipna, numeric_only=numeric_only, **kwargs
-  14463         )
-  14464         if isinstance(result, Series):
+param_df.columns = param_df.columns.str.strip()
 
-File ~\AppData\Local\anaconda3\envs\neurohoop\Lib\site-packages\pandas\core\generic.py:11831, in NDFrame.mean(self, axis, skipna, numeric_only, **kwargs)
-  11827         skipna: bool = True,
-  11828         numeric_only: bool = False,
-  11829         **kwargs,
-  11830     ) -> Series | float:
-> 11831         return self._stat_function(
-  11832             "mean", nanops.nanmean, axis, skipna, numeric_only, **kwargs
-  11833         )
+for col in phys_cols:
 
-File ~\AppData\Local\anaconda3\envs\neurohoop\Lib\site-packages\pandas\core\generic.py:11785, in NDFrame._stat_function(self, name, func, axis, skipna, numeric_only, **kwargs)
-  11781         nv.validate_func(name, (), kwargs)
-  11782 
-  11783         validate_bool_kwarg(skipna, "skipna", none_allowed=False)
-  11784 
-> 11785         return self._reduce(
-  11786             func, name=name, axis=axis, skipna=skipna, numeric_only=numeric_only
-  11787         )
+    # Convert to ordinary Python strings first
+    values = param_df[col].to_numpy(dtype=object)
 
-File ~\AppData\Local\anaconda3\envs\neurohoop\Lib\site-packages\pandas\core\frame.py:13621, in DataFrame._reduce(self, op, name, axis, skipna, numeric_only, filter_type, **kwds)
-  13617             df = df.T
-  13618 
-  13619         # After possibly _get_data and transposing, we are now in the
-  13620         #  simple case where we can use BlockManager.reduce
-> 13621         res = df._mgr.reduce(blk_func)
-  13622         out = df._constructor_from_mgr(res, axes=res.axes).iloc[0]
-  13623         out.name = None
-  13624         if out_dtype is not None and out.dtype != "boolean":
+    # Convert measurements to numeric values
+    numeric_values = pd.to_numeric(
+        values,
+        errors='coerce'
+    )
 
-File ~\AppData\Local\anaconda3\envs\neurohoop\Lib\site-packages\pandas\core\internals\managers.py:1673, in BlockManager.reduce(self, func)
-   1670 # If 2D, we assume that we're operating column-wise
-   1671 assert self.ndim == 2
--> 1673 res_blocks = [blk.reduce(func) for blk in self.blocks]
-   1674 index = default_index(1)  # placeholder
-   1675 # shallow copy self.items not needed because DataFrame._reduce does a getitem
+    # Store values explicitly as float64
+    param_df[col] = np.asarray(
+        numeric_values,
+        dtype=np.float64
+    )
 
-File ~\AppData\Local\anaconda3\envs\neurohoop\Lib\site-packages\pandas\core\internals\managers.py:1673, in <listcomp>(.0)
-   1670 # If 2D, we assume that we're operating column-wise
-   1671 assert self.ndim == 2
--> 1673 res_blocks = [blk.reduce(func) for blk in self.blocks]
-   1674 index = default_index(1)  # placeholder
-   1675 # shallow copy self.items not needed because DataFrame._reduce does a getitem
+    # Report missing or invalid measurements
+    n_missing = param_df[col].isna().sum()
 
-File ~\AppData\Local\anaconda3\envs\neurohoop\Lib\site-packages\pandas\core\internals\blocks.py:358, in Block.reduce(self, func)
-    352 @final
-    353 def reduce(self, func) -> Block:
-    354     # We will apply the function and reshape the result into a single-row
-    355     #  Block with the same mgr_locs; squeezing will be done at a higher level
-    356     assert self.ndim == 2
---> 358     result = func(self.values)
-    360     if self.values.ndim == 1:
-    361         res_values = result
+    print(f"{col}: {n_missing} missing/invalid values")
 
-File ~\AppData\Local\anaconda3\envs\neurohoop\Lib\site-packages\pandas\core\frame.py:13549, in DataFrame._reduce.<locals>.blk_func(values, axis)
-  13545         def blk_func(values, axis: Axis = 1):
-  13546             if isinstance(values, ExtensionArray):
-  13547                 if not is_1d_only_ea_dtype(values.dtype):
-  13548                     return values._reduce(name, axis=1, skipna=skipna, **kwds)
-> 13549                 return values._reduce(name, skipna=skipna, keepdims=True, **kwds)
-  13550             else:
-  13551                 return op(values, axis=axis, skipna=skipna, **kwds)
-
-File ~\AppData\Local\anaconda3\envs\neurohoop\Lib\site-packages\pandas\core\arrays\string_.py:967, in StringArray._reduce(self, name, skipna, keepdims, axis, **kwargs)
-    964         return self._from_sequence([result], dtype=self.dtype)
-    965     return result
---> 967 raise TypeError(f"Cannot perform reduction '{name}' with string dtype")
-
-TypeError: Cannot perform reduction 'mean' with string dtype
-
+print("\nPhysiological column types:")
+print(param_df[phys_cols].dtypes)
