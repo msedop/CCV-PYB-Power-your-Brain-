@@ -1,16 +1,111 @@
-TypeError                                 Traceback (most recent call last)
-File c:\users\msedo\downloads\ccv_stef_ma_numpy_2_4_3.py:3396
-   3394 else:
-   3395     print("Computing band powers and aggregating by region for events...")
--> 3396     df, per_event_band_data = compute_and_group_events(events, bands)
-   3397     print("Summary table:")
-   3398     pd.set_option('display.max_rows', 200)
+---------------------------------------------------------------------------
+ValueError                                Traceback (most recent call last)
+File c:\users\msedo\downloads\ccv_stef_ma_wpli2_only_full.py:2040
+   2038 X = scaler.fit_transform(num)  # rows = stat_event_labels
+   2039 pca = PCA(n_components=min(6, X.shape[1]))
+-> 2040 scores = pca.fit_transform(X)  # event scores in PC space
+   2041 loadings = pd.DataFrame(pca.components_.T, index=num.columns, columns=[f"PC{i+1}" for i in range(pca.n_components_)])
+   2042 explained = pca.explained_variance_ratio_
 
-File c:\users\msedo\downloads\ccv_stef_ma_numpy_2_4_3.py:3226, in compute_and_group_events(events, bands, group_func, psd_method)
-   3223 per_event_band_data = {}
-   3225 for i, ev in enumerate(events):
--> 3226     raw = ev['raw']
-   3227     desc = ev.get('description', f'event_{i}')
-   3228     # compute per-channel band powers
+File ~\AppData\Local\anaconda3\envs\neurohoop\Lib\site-packages\sklearn\utils\_set_output.py:316, in _wrap_method_output.<locals>.wrapped(self, X, *args, **kwargs)
+    314 @wraps(f)
+    315 def wrapped(self, X, *args, **kwargs):
+--> 316     data_to_wrap = f(self, X, *args, **kwargs)
+    317     if isinstance(data_to_wrap, tuple):
+    318         # only wrap the first output for cross decomposition
+    319         return_tuple = (
+    320             _wrap_data_with_container(method, data_to_wrap[0], X, self),
+    321             *data_to_wrap[1:],
+    322         )
 
-TypeError: string indices must be integers, not 'str'
+File ~\AppData\Local\anaconda3\envs\neurohoop\Lib\site-packages\sklearn\base.py:1336, in _fit_context.<locals>.decorator.<locals>.wrapper(estimator, *args, **kwargs)
+   1329     estimator._validate_params()
+   1331 with config_context(
+   1332     skip_parameter_validation=(
+   1333         prefer_skip_nested_validation or global_skip_validation
+   1334     )
+   1335 ):
+-> 1336     return fit_method(estimator, *args, **kwargs)
+
+File ~\AppData\Local\anaconda3\envs\neurohoop\Lib\site-packages\sklearn\decomposition\_pca.py:466, in PCA.fit_transform(self, X, y)
+    443 @_fit_context(prefer_skip_nested_validation=True)
+    444 def fit_transform(self, X, y=None):
+    445     """Fit the model with X and apply the dimensionality reduction on X.
+    446 
+    447     Parameters
+   (...)    464     C-ordered array, use 'np.ascontiguousarray'.
+    465     """
+--> 466     U, S, _, X, x_is_centered, xp = self._fit(X)
+    467     if U is not None:
+    468         U = U[:, : self.n_components_]
+
+File ~\AppData\Local\anaconda3\envs\neurohoop\Lib\site-packages\sklearn\decomposition\_pca.py:503, in PCA._fit(self, X)
+    493     raise ValueError(
+    494         "PCA with svd_solver='arpack' is not supported for Array API inputs."
+    495     )
+    497 # Validate the data, without ever forcing a copy as any solver that
+    498 # supports sparse input data and the `covariance_eigh` solver are
+    499 # written in a way to avoid the need for any inplace modification of
+    500 # the input data contrary to the other solvers.
+    501 # The copy will happen
+    502 # later, only if needed, once the solver negotiation below is done.
+--> 503 X = validate_data(
+    504     self,
+    505     X,
+    506     dtype=[xp.float64, xp.float32],
+    507     force_writeable=True,
+    508     accept_sparse=("csr", "csc"),
+    509     ensure_2d=True,
+    510     copy=False,
+    511 )
+    512 self._fit_svd_solver = self.svd_solver
+    513 if self._fit_svd_solver == "auto" and issparse(X):
+
+File ~\AppData\Local\anaconda3\envs\neurohoop\Lib\site-packages\sklearn\utils\validation.py:2902, in validate_data(_estimator, X, y, reset, validate_separately, skip_check_array, **check_params)
+   2900         out = X, y
+   2901 elif not no_val_X and no_val_y:
+-> 2902     out = check_array(X, input_name="X", **check_params)
+   2903 elif no_val_X and not no_val_y:
+   2904     out = _check_y(y, **check_params)
+
+File ~\AppData\Local\anaconda3\envs\neurohoop\Lib\site-packages\sklearn\utils\validation.py:1074, in check_array(array, accept_sparse, accept_large_sparse, dtype, order, copy, force_writeable, ensure_all_finite, ensure_non_negative, ensure_2d, allow_nd, ensure_min_samples, ensure_min_features, estimator, input_name)
+   1068     raise ValueError(
+   1069         f"Found array with dim {array.ndim},"
+   1070         f" while dim <= 2 is required{context}."
+   1071     )
+   1073 if ensure_all_finite:
+-> 1074     _assert_all_finite(
+   1075         array,
+   1076         input_name=input_name,
+   1077         estimator_name=estimator_name,
+   1078         allow_nan=ensure_all_finite == "allow-nan",
+   1079     )
+   1081 if copy:
+   1082     if _is_numpy_namespace(xp):
+   1083         # only make a copy if `array` and `array_orig` may share memory`
+
+File ~\AppData\Local\anaconda3\envs\neurohoop\Lib\site-packages\sklearn\utils\validation.py:133, in _assert_all_finite(X, allow_nan, msg_dtype, estimator_name, input_name)
+    130 if first_pass_isfinite:
+    131     return
+--> 133 _assert_all_finite_element_wise(
+    134     X,
+    135     xp=xp,
+    136     allow_nan=allow_nan,
+    137     msg_dtype=msg_dtype,
+    138     estimator_name=estimator_name,
+    139     input_name=input_name,
+    140 )
+
+File ~\AppData\Local\anaconda3\envs\neurohoop\Lib\site-packages\sklearn\utils\validation.py:182, in _assert_all_finite_element_wise(X, xp, allow_nan, msg_dtype, estimator_name, input_name)
+    165 if estimator_name and input_name == "X" and has_nan_error:
+    166     # Improve the error message on how to handle missing values in
+    167     # scikit-learn.
+    168     msg_err += (
+    169         f"\n{estimator_name} does not accept missing values"
+    170         " encoded as NaN natively. For supervised learning, you might want"
+   (...)    180         "#estimators-that-handle-nan-values"
+    181     )
+--> 182 raise ValueError(msg_err)
+
+ValueError: Input X contains NaN.
+PCA does not accept missing values encoded as NaN natively. For supervised learning, you might want to consider sklearn.ensemble.HistGradientBoostingClassifier and Regressor which accept missing values encoded as NaNs natively. Alternatively, it is possible to preprocess the data, for instance by using an imputer transformer in a pipeline or drop samples with missing values. See https://scikit-learn.org/stable/modules/impute.html You can find a list of all estimators that handle NaN values at the following page: https://scikit-learn.org/stable/modules/impute.html#estimators-that-handle-nan-values
