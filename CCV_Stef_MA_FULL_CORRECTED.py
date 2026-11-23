@@ -85,6 +85,29 @@ for folder in (ICA_DIR, EVENT_SEGMENTS_DIR, RESULTS_DIR, TOPO_DIR,
 
 plt.close("all")
 
+# ======================= Definition of frequency bands =======================
+
+bands = {
+    "Delta": (1, 4),
+    "Theta": (4.25, 8),
+    "Alpha": (8.25, 13),
+    "Low Alpha": (8.25, 10),
+    "High Alpha": (10.25, 13),
+    "Beta": (13.25, 30),
+    "Low Beta": (13.25, 20),
+    "High Beta": (20.25, 30),
+    "Gamma": (30.25, 40),
+}    
+
+# bands = {
+#     "Delta": (0.5, 4),
+#     "Theta": (4.25, 8),
+#     "Alpha": (8.25, 13),
+#     "Beta": (13.25, 30),
+#     "Gamma": (30.25, 45)
+# }   
+
+
 # ================================ Loading Data ==============================
 # -------------------------  Physiological Data ------------------------------
 
@@ -791,15 +814,6 @@ def compute_ica(raw, sfreq):
     #ica.plot_components()
     
     # ---------------- ICA components info ------------------------
-
-    # Define frequency bands
-    bands = {
-        "Delta": (1, 4),
-        "Theta": (4.25, 8),
-        "Alpha": (8.25, 13),
-        "Beta": (13.25, 30),
-        "Gamma": (30.25, 45)
-    }
     
     # Create output folder
     output_dir = ICA_DIR
@@ -1291,7 +1305,7 @@ def split_segments_by_event_durations(segments, descriptions, durations, tol=5.0
 # Do not stitch event labels across gaps or beyond the end of available EEG.
 # The existing sequential splitter assumes the durations match these cleaned segments.
 # Check synchronization before interpreting the exported maps.
-events = split_segments_by_event_durations(asr_cleaned_segments, descriptions, durations, tol=5.0)
+events = split_segments_by_event_durations(all_cleaned_ica, descriptions, durations, tol=5.0)
 eeg_events = events  # keep dictionary records separate from later event-label strings
 for e in eeg_events:
     print(e['event_index'], e['description'], e['duration'], e['source_segments'])
@@ -1302,25 +1316,6 @@ topomap_results = export_all_topomap_figures(
     eeg_events, output_dir=TOPO_DIR, show=False
 )
 
-
-# ======================= Definition of frequency bands =======================
-
-bands = {
-    "Theta": (4.25, 8),
-    "Low Alpha": (8.25, 10),
-    "High Alpha": (10.25, 13),
-    "Alpha": (8.25, 13),
-    "Low Beta": (13.25, 20),
-    "High Beta": (20.25, 30)
-}    
-
-# bands = {
-#     "Delta": (0.5, 4),
-#     "Theta": (4.25, 8),
-#     "Alpha": (8.25, 13),
-#     "Beta": (13.25, 30),
-#     "Gamma": (30.25, 45)
-# }   
 
 
 #=============================================================================
@@ -1832,14 +1827,6 @@ print(power_topomap_df.head())
 
 # ----------------- Grouping channels by region ---------------------------
 
-bands = {
-    "Delta": (0.5, 4),
-    "Theta": (4, 8),
-    "Alpha": (8, 13),
-    "Beta": (13, 30),
-    "Gamma": (30, 45)
-}  
-
 def group_channels_by_region(ch_names):
     """Group EEG channels by anatomical region based on first letter."""
     region_map = {
@@ -1929,16 +1916,6 @@ alpha_bands = per_event_band_data[per_event_band_data['Band'] == 'Alpha']
 
 # ====================== Theta/ Alpha ratios ===============================
 
-
-# New bands: include combined "Alpha" plus Low/High sub-bands
-bands = {
-    "Theta": (4.25, 8),
-    "Low Alpha": (8.25, 10),
-    "High Alpha": (10.25, 13),
-    "Alpha": (8.25, 13),        # combined alpha band to be used for the normal alpha ratio
-    "Low Beta": (13.25, 20),
-    "High Beta": (20.25, 30)
-}
 
 output_dir_res = RESULTS_DIR
 os.makedirs(output_dir_res, exist_ok=True)
